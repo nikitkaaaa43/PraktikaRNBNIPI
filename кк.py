@@ -1,5 +1,4 @@
 import numpy as np
-import os, shutil
 
 
 name = "# WELL NAME:"
@@ -9,7 +8,7 @@ KB = '# WELL KB:'
 gr = '#====='
 name_cols = '      MD'
 
-with open('1234 - corrupted.txt') as f:
+with open('1234-new.txt') as f:
     for i, s in enumerate(f):
         if name in s:
             str_name = s
@@ -31,40 +30,39 @@ with open('1234 - corrupted.txt') as f:
             str_name_cols = s
             print(str_name_cols)
 
-
-
 fname = '1234 - corrupted.txt'
-a = np.loadtxt(fname, skiprows=str_gr, usecols=(1,2,3,4,5))
+a = np.loadtxt(fname, skiprows=str_gr, usecols=(1,2,3,4,5,6))
 print(a)
 
-KEY_FOR_SEARCH = input('Что будем искать?\n')
-PATH_FOR_COPY = input('Куда скопировать файлы?\n')
 
-def search():
-    for adress, dirs, files in os.walk(input('Введите путь откуда начать поиск\n')):
-        for file in files:
-            if file.endswith('.txt') and '$' not in file:
-                yield os.path.join(adress, file)
 
-def read_from_pathtxt(path):
-    with open(path) as r:
-        for i in r:
-            if KEY_FOR_SEARCH in i:
-                return copy(path)
+#KEY_FOR_SEARCH = input('Что будем искать?\n')
+#PATH_FOR_COPY = input('Куда скопировать файлы?\n')
 
-def copy(path):
-    file_name = path.split('\\')[-1]
+#def search():
+#   for adress, dirs, files in os.walk(input('Введите путь откуда начать поиск\n')):
+#        for file in files:
+#            if file.endswith('.txt') and '$' not in file:
+#                yield os.path.join(adress, file)
 
-    shutil.copyfile(path, os.path.join(PATH_FOR_COPY, file_name))
-    print('Файл скопирован', file_name)
+#def read_from_pathtxt(path):
+#    with open(path) as r:
+#        for i in r:
+#            if KEY_FOR_SEARCH in i:
+#                return copy(path)
 
-for i in search():
-    try:
-        read_from_pathtxt(i)
-    except Exception as e:
-        with open(os.path.join(PATH_FOR_COPY, 'errors.txt'), 'a') as r:
-            r.write(str(e) + '\n' + i + '\n')
+#def copy(path):
+#    file_name = path.split('\\')[-1]
 
+#    shutil.copyfile(path, os.path.join(PATH_FOR_COPY, file_name))
+#    print('Файл скопирован', file_name)
+
+#for i in search():
+#    try:
+#        read_from_pathtxt(i)
+#    except Exception as e:
+#        with open(os.path.join(PATH_FOR_COPY, 'errors.txt'), 'a') as r:
+#            r.write(str(e) + '\n' + i + '\n')
 
 
 
