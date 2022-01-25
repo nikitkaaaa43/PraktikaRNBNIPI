@@ -1,6 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import copy
+import math
+import cmath
+import pywt
 # шапка
 name = "# WELL NAME:"
 head_x_coordinate = "# WELL HEAD X-COORDINATE:"
@@ -8,7 +11,7 @@ head_y_coordinate = "# WELL HEAD Y-COORDINATE:"
 KB = '# WELL KB:'
 gr = '#====='
 name_cols = '      MD'
-alt_path = "vert.dev"
+alt_path = "pologaya.dev"
 # открываем файл
 with open(alt_path) as f:
     # создаем цикл с счетчиком элементов (i-элемент, s-строка)
@@ -52,13 +55,14 @@ VERT, POLOG, S_OBRAZ = 0, 1, 2
 LOW, MID, HIGH = 0, 1, 2
 
 # todo вычислять в ходе программы
-well_type = VERT
-well_interval = MID
+well_type = POLOG
+well_interval = HIGH
 # данные файла
 all_data = np.loadtxt(alt_path, skiprows=str_gr)
 # todo нужно добавить переменные, сделал так для упрощения
 # выбираем 7 столбец
 azim = all_data[:, 7]
+#print(azim)
 # копируем этот столбец, для того чтобы внести его в переменную и использовать ее для построения графика без замены
 test_copy_azim = copy.copy(azim)
 # todo нужно добавить переменные, сделал так для упрощения
@@ -71,6 +75,9 @@ test_copy_md = copy.copy(md)
 incl = all_data[:, 8]
 # копируем этот столбец, для того чтобы внести его в переменную и использовать ее для построения графика без замены
 test_copy_incl = copy.copy(incl)
+# копируем массив зенитного угла
+test_incl = copy.copy(incl)
+test1_incl = copy.copy(incl)
 # строки с nan
 where_nan = np.where(np.isnan(azim))[0]
 # начало дыры и конец
@@ -155,13 +162,36 @@ elif well_type == VERT:
 else:
     print("Неизвестная скважина")
 # проверяем как заменились nan
-# print(azim)
+#print(azim)
+# копируем массив азимутального угла
+test_azim = copy.copy(azim)
+test1_azim = copy.copy(azim)
 # считаем координаты для построения 3д графика
 delta_x = (md[1:] - md[:-1]) * (np.sin((np.radians((incl[1:] + incl[:-1]) / 2)))) * (np.sin((np.radians((azim[1:] + azim[:-1]) / 2))))
 # print(delta_x)
 delta_y = (md[1:] - md[:-1]) * (np.sin((np.radians((incl[1:] + incl[:-1]) / 2)))) * (np.cos((np.radians((azim[1:] + azim[:-1]) / 2))))
 # print(delta_y)
 delta_z = (md[1:] - md[:-1]) * (np.cos((np.radians((incl[1:] + incl[:-1]) / 2))))
+test_incl += 0.25
+#print(test_incl)
+test1_incl -= 0.25
+#print(test1_incl)
+test_azim += 5
+#print(test_azim)
+test1_azim -= 5
+#print(test1_azim)
+delta_x_rad = (md[1:] - md[:-1]) * (np.sin((np.radians((test_incl[1:] + test_incl[:-1]) / 2)))) * (np.sin((np.radians((test_azim[1:] + test_azim[:-1]) / 2))))
+# print(delta_x)
+delta_y_rad = (md[1:] - md[:-1]) * (np.sin((np.radians((test_incl[1:] + test_incl[:-1]) / 2)))) * (np.cos((np.radians((test_azim[1:] + test_azim[:-1]) / 2))))
+# print(delta_y)
+delta_z_rad = (md[1:] - md[:-1]) * (np.cos((np.radians((test_incl[1:] + test_incl[:-1]) / 2))))
+#delta_x_rad1 = (md[1:] - md[:-1]) * (np.sin((np.radians((test1_incl[1:] + test1_incl[:-1]) / 2)))) * (np.sin((np.radians((test1_azim[1:] + test1_azim[:-1]) / 2))))
+# print(delta_x)
+#delta_y_rad1 = (md[1:] - md[:-1]) * (np.sin((np.radians((test1_incl[1:] + test1_incl[:-1]) / 2)))) * (np.cos((np.radians((test1_azim[1:] + test1_azim[:-1]) / 2))))
+# print(delta_y)
+#delta_z_rad1 = (md[1:] - md[:-1]) * (np.cos((np.radians((test1_incl[1:] + test1_incl[:-1]) / 2))))
+radius_skv = np.sqrt((x_crd - delta_x_rad)**2 + (y_crd - delta_y_rad)**2 + (kb_str - delta_z_rad)**2)
+print(radius_skv)
 # print(delta_z)
 # возвращает кумулятивную (накапливаемую) сумму элементов массива
 result_x = np.cumsum(delta_x)
@@ -174,7 +204,7 @@ result_z = np.cumsum(delta_z) * (-1)
 if well_type == S_OBRAZ or well_type == POLOG or well_type == VERT:
     start_nan1 = test_copy_azim[start]
     test_copy_azim[where_nan] = 0
-    # print(test_copy_azim)
+    #print(test_copy_azim)
 # считаем координаты для построения 3д графика для неисправленной скважины
 delta_x_test = (test_copy_md[1:] - test_copy_md[:-1]) * (np.sin((np.radians((test_copy_incl[1:] + test_copy_incl[:-1]) / 2)))) * (np.sin((np.radians((test_copy_azim[1:] + test_copy_azim[:-1]) / 2))))
 # print(delta_x_test)
@@ -189,6 +219,7 @@ result_y_test = np.cumsum(delta_y_test)
 # print(result_y_test)
 result_z_test = np.cumsum(delta_z_test) * (-1)
 # print(result_z_test)
+
 
 # условие для названия графика
 if well_type == S_OBRAZ:
