@@ -304,5 +304,4 @@ ax.legend(fontsize=15, edgecolor='g')
 # параметры графика
 fig.set_figheight(10)
 fig.set_figwidth(10)
-
 plt.show()
