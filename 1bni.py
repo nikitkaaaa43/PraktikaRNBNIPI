@@ -1,9 +1,12 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import copy
-import math
-import cmath
-import pywt
+import copy, math
+from mpl_toolkits.mplot3d.art3d import Poly3DCollection
+
+# массив с глубинами пластов
+# может быть указано любое число пластов
+plast_levels = [-800, -1500, -2200]
+
 # шапка
 name = "# WELL NAME:"
 head_x_coordinate = "# WELL HEAD X-COORDINATE:"
@@ -11,7 +14,7 @@ head_y_coordinate = "# WELL HEAD Y-COORDINATE:"
 KB = '# WELL KB:'
 gr = '#====='
 name_cols = '      MD'
-alt_path = "pologaya.dev"
+alt_path = "s-obraz.dev"
 # открываем файл
 with open(alt_path) as f:
     # создаем цикл с счетчиком элементов (i-элемент, s-строка)
@@ -54,15 +57,17 @@ VERT, POLOG, S_OBRAZ = 0, 1, 2
 # интервалы
 LOW, MID, HIGH = 0, 1, 2
 
+# систематическая положительная ошибка из таблицы 7.1 (в градусах)
+ERR = 0.25
+
 # todo вычислять в ходе программы
-well_type = POLOG
-well_interval = HIGH
+well_type = S_OBRAZ
+well_interval = LOW
 # данные файла
 all_data = np.loadtxt(alt_path, skiprows=str_gr)
 # todo нужно добавить переменные, сделал так для упрощения
 # выбираем 7 столбец
 azim = all_data[:, 7]
-#print(azim)
 # копируем этот столбец, для того чтобы внести его в переменную и использовать ее для построения графика без замены
 test_copy_azim = copy.copy(azim)
 # todo нужно добавить переменные, сделал так для упрощения
@@ -162,7 +167,7 @@ elif well_type == VERT:
 else:
     print("Неизвестная скважина")
 # проверяем как заменились nan
-#print(azim)
+print(azim)
 # копируем массив азимутального угла
 test_azim = copy.copy(azim)
 test1_azim = copy.copy(azim)
