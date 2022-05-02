@@ -285,8 +285,6 @@ else:
 # строим 3д график
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
-# построение графика с заменой
-ax.plot(result_x, result_y, result_z, label=name_picture + ' ' + name_borehole, color='blue')
 # построение конуса неопределенности
 for (x_c, y_c, z_c) in cone:
     ax.plot(x_c, y_c, z_c, color='green')
