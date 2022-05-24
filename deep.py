@@ -223,7 +223,6 @@ result_y = np.cumsum(delta_y)
 result_z = np.cumsum(delta_z) * (-1)
 # print(result_z)
 
-
 # расчитываем координаты оси с учетом добавления систематической ошибки ERR
 delta_x1 = (md[1:] - md[:-1]) * (np.sin((np.radians((incl[1:] + incl[:-1]) / 2 + ERR)))) * (
     np.sin((np.radians((azim[1:] + azim[:-1]) / 2 + ERR))))
