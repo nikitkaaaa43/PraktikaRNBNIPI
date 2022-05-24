@@ -117,7 +117,7 @@ elif well_inclinometers == Gyroscopic_inclinometers and all(incl[1:] > 5):
 else:
     print("Неизвестное условие")
 
-
+#33
 # копируем этот столбец, для того чтобы внести его в переменную и использовать ее для построения графика без замены
 test_copy_incl = copy.copy(incl)
 # строки с nan
