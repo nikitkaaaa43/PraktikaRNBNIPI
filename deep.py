@@ -3,9 +3,30 @@ import matplotlib.pyplot as plt
 import copy, math
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
-# массив с глубинами пластов
-# может быть указано любое число пластов
-plast_levels = [-800, -1500, -2200]
+
+# функция расчета точек эллипса вероятности
+def count_ellipse_points(X, Y, lvls, type):
+    x = []
+    y = []
+    z = []
+    if type == "POLOG" or "S_OBRAZ":
+        x0 = X
+        y0 = Y
+        z0 = (lvls[-2] + lvls[-1]) / 2
+        R = 50
+        for i in np.arange(- R, R, 1):
+            x.append(X)
+            z.append(z0 + math.sqrt(R * R - (i - z0) * (i - z0)))
+            y.append(i)
+            x.append(X)
+            z.append(z0 - math.sqrt(R * R - (i - z0) * (i - z0)))
+            y.append(i)
+    if type == "VERT":
+        pass
+    return x, y, z
+
+
+
 
 # шапка
 name = "# WELL NAME:"
@@ -14,7 +35,7 @@ head_y_coordinate = "# WELL HEAD Y-COORDINATE:"
 KB = '# WELL KB:'
 gr = '#====='
 name_cols = '      MD'
-alt_path = "s-obraz.dev"
+alt_path = "vert.dev"
 # открываем файл
 with open(alt_path) as f:
     # создаем цикл с счетчиком элементов (i-элемент, s-строка)
@@ -57,12 +78,10 @@ VERT, POLOG, S_OBRAZ = 0, 1, 2
 # интервалы
 LOW, MID, HIGH = 0, 1, 2
 
-# систематическая положительная ошибка из таблицы 7.1 (в градусах)
-ERR = 0.25
 
 # todo вычислять в ходе программы
-well_type = S_OBRAZ
-well_interval = LOW
+well_type = VERT
+well_interval = MID
 # данные файла
 all_data = np.loadtxt(alt_path, skiprows=str_gr)
 # todo нужно добавить переменные, сделал так для упрощения
@@ -73,11 +92,32 @@ test_copy_azim = copy.copy(azim)
 # todo нужно добавить переменные, сделал так для упрощения
 # выбираем 0 столбец
 md = all_data[:, 0]
+neft_plast = md[-3]
 # копируем этот столбец, для того чтобы внести его в переменную и использовать ее для построения графика без замены
 test_copy_md = copy.copy(md)
 # todo нужно добавить переменные, сделал так для упрощения
 # выбираем 8 столбец
 incl = all_data[:, 8]
+
+# тип измеряемого инструмента
+Magnetic_inclinometers, Telesystems_Wired_Channel, Telesystems_hydraulic_communication_channel, Gyroscopic_inclinometers = 0, 1, 2, 3
+
+# систематическая положительная ошибка из таблицы 7.1 (в градусах)
+well_inclinometers = Telesystems_Wired_Channel
+if all(incl[1:] < 5):
+    ERR = 0.25
+elif well_inclinometers == Magnetic_inclinometers and all(incl[1:] > 5):
+    ERR = 0.2
+elif well_inclinometers == Telesystems_Wired_Channel and all(incl[1:] > 5):
+    ERR = 0.15
+elif well_inclinometers == Telesystems_hydraulic_communication_channel and all(incl[1:] > 5):
+    ERR = 0.1
+elif well_inclinometers == Gyroscopic_inclinometers and all(incl[1:] > 5):
+    ERR = 0.1
+else:
+    print("Неизвестное условие")
+
+
 # копируем этот столбец, для того чтобы внести его в переменную и использовать ее для построения графика без замены
 test_copy_incl = copy.copy(incl)
 # строки с nan
@@ -164,7 +204,7 @@ elif well_type == VERT:
 else:
     print("Неизвестная скважина")
 # проверяем как заменились nan
-# print(azim)
+print(azim)
 # считаем координаты для построения 3д графика
 delta_x = (md[1:] - md[:-1]) * (np.sin((np.radians((incl[1:] + incl[:-1]) / 2)))) * (
     np.sin((np.radians((azim[1:] + azim[:-1]) / 2))))
@@ -220,47 +260,58 @@ for i in range(0, len(r)):
             _z_ = result_z[i]
             _x_ = result_x[i] - r[i] + step * j
             _y_ = result_y[i] + np.sqrt(r[i] * r[i] - (result_x[i] - r[i] + step * j - result_x[i]) * (
-                        result_x[i] - r[i] + step * j - result_x[i]))
+                    result_x[i] - r[i] + step * j - result_x[i]))
         else:
             _z_ = result_z[i]
             _x_ = result_x[i] + r[i] + step * (N - j)
             _y_ = result_y[i] - np.sqrt(r[i] * r[i] - (result_x[i] + r[i] + step * (N - j) - result_x[i]) * (
-                        result_x[i] + r[i] + step * (N - j) - result_x[i]))
+                    result_x[i] + r[i] + step * (N - j) - result_x[i]))
         cone_x.append(_x_)
         cone_y.append(_y_)
         cone_z.append(_z_)
     cone.append((cone_x, cone_y, cone_z))
 
 # заполняем nan 0 для копии файла, чтобы видеть чем отличаются графики
-#if well_type == S_OBRAZ or well_type == POLOG or well_type == VERT:
-    #start_nan1 = test_copy_azim[start]
-    #test_copy_azim[where_nan] = 0
-    # print(test_copy_azim)
+# if well_type == S_OBRAZ or well_type == POLOG or well_type == VERT:
+# start_nan1 = test_copy_azim[start]
+# test_copy_azim[where_nan] = 0
+# print(test_copy_azim)
 # считаем координаты для построения 3д графика для неисправленной скважины
-#delta_x_test = (test_copy_md[1:] - test_copy_md[:-1]) * (
-    #np.sin((np.radians((test_copy_incl[1:] + test_copy_incl[:-1]) / 2)))) * (
-                   #np.sin((np.radians((test_copy_azim[1:] + test_copy_azim[:-1]) / 2))))
+# delta_x_test = (test_copy_md[1:] - test_copy_md[:-1]) * (
+# np.sin((np.radians((test_copy_incl[1:] + test_copy_incl[:-1]) / 2)))) * (
+# np.sin((np.radians((test_copy_azim[1:] + test_copy_azim[:-1]) / 2))))
 # print(delta_x_test)
-#delta_y_test = (test_copy_md[1:] - test_copy_md[:-1]) * (
-    #np.sin((np.radians((test_copy_incl[1:] + test_copy_incl[:-1]) / 2)))) * (
-                   #np.cos((np.radians((test_copy_azim[1:] + test_copy_azim[:-1]) / 2))))
+# delta_y_test = (test_copy_md[1:] - test_copy_md[:-1]) * (
+# np.sin((np.radians((test_copy_incl[1:] + test_copy_incl[:-1]) / 2)))) * (
+# np.cos((np.radians((test_copy_azim[1:] + test_copy_azim[:-1]) / 2))))
 # print(delta_y_test)
-#delta_z_test = (test_copy_md[1:] - test_copy_md[:-1]) * (
-    #np.cos((np.radians((test_copy_incl[1:] + test_copy_incl[:-1]) / 2))))
+# delta_z_test = (test_copy_md[1:] - test_copy_md[:-1]) * (
+# np.cos((np.radians((test_copy_incl[1:] + test_copy_incl[:-1]) / 2))))
 # print(delta_z_test)
 # возвращает кумулятивную (накапливаемую) сумму элементов массива
-#result_x_test = np.cumsum(delta_x_test)
+# result_x_test = np.cumsum(delta_x_test)
 # print(result_x_test)
-#result_y_test = np.cumsum(delta_y_test)
+# result_y_test = np.cumsum(delta_y_test)
 # print(result_y_test)
-#result_z_test = np.cumsum(delta_z_test) * (-1)
+# result_z_test = np.cumsum(delta_z_test) * (-1)
 # print(result_z_test)
 
 
+# массив с глубинами пластов
+# может быть указано любое число пластов
+plast_levels = [-800, -1500, -2200, -abs(neft_plast)]
+colors = ['wheat', 'sienna', 'black', 'chocolate']
+
 # массив с граничными точками пластов
+# и с точками для заполнения пластов
 plasts = []
+plasts_points = []
+prev_lvl = 0
 for lvl in plast_levels:
     index = 0
+    plast_x = []
+    plast_y = []
+    plast_z = []
     for z in result_z:
         if math.fabs(z - lvl) < 5:
             maxX = result_x[index] + 50
@@ -271,7 +322,17 @@ for lvl in plast_levels:
             _y = [maxY, minY, minY, maxY]
             _z = [lvl, lvl, lvl, lvl]
             plasts.append([list(zip(_x, _y, _z))])
+        if float(z) > lvl and float(z) < prev_lvl:
+            if index % 10 == 0:
+                for j in range(-50, 50, 20):
+                    for k in range(-50, 50, 20):
+                        plast_x.append(result_x[index] + j)
+                        plast_y.append(result_y[index] + k)
+                        plast_z.append(z)
+
         index += 1
+    plasts_points.append((plast_x, plast_y, plast_z))
+    prev_lvl = lvl
 
 # условие для названия графика
 if well_type == S_OBRAZ:
@@ -296,6 +357,12 @@ for vertices in plasts:
     ax.add_collection3d(poly)
     poly.set_color((round(i / 256, 1), 0.2, 0.5))
     i += 10
+
+# заполнение пластов
+i = 0
+for fill in plasts_points:
+    ax.scatter(fill[0], fill[1], fill[2], c=colors[i])
+    i += 1
 
 # построение графика с заменой
 ax.plot(result_x, result_y, result_z, label=name_picture + ' ' + name_borehole, color='blue')
