@@ -6,7 +6,7 @@ import random
 
 # ФАЙЛ
 
-alt_path = "pologaya.dev"
+alt_path = "s-obraz.dev"
 # массив с глубинами пластов
 
 # ПАРАМЕТРЫ ЭЛЛИПСА ВЕРОЯТНОСТИ
@@ -113,7 +113,7 @@ LOW, MID, HIGH = 0, 1, 2
 ERR = 0.25
 
 # todo вычислять в ходе программы
-well_interval = MID
+well_interval = HIGH
 # данные файла
 all_data = np.loadtxt(alt_path, skiprows=str_gr)
 # todo нужно добавить переменные, сделал так для упрощения
@@ -141,8 +141,8 @@ finish = where_nan[-1] + 1 if where_nan[-1] + 1 != len(md) else where_nan[-1]
 incl_condition = any(incl[where_nan] > 10)
 
 # может быть указано любое число пластов
-plast_levels = [-800, -1500, -2200, -abs(neft_plast)]
-colors = ['wheat', 'sienna', 'black', 'chocolate', 'red']
+plast_levels = [-800, -1400, -2000, -2900]
+colors = ['wheat', 'sienna', 'chocolate', 'black', 'red']
 # условия для каждого типа скважин и интервала
 if well_type == S_OBRAZ or well_type == POLOG:
     if well_interval == LOW:
@@ -180,7 +180,6 @@ if well_type == S_OBRAZ or well_type == POLOG:
             delta_azim = azim[finish] - azim[start]
         else:
             delta_azim = 0
-        # todo учесть случай когда start больше finish
         # интерполяция данных
         azim_insert = np.linspace(start=azim[start], stop=azim[finish], num=len(where_nan) + 2)[1:-1]
         azim[where_nan] = azim_insert
@@ -259,7 +258,7 @@ for i in range(0, len(X_inc)):
                    (result_y[i] - Y_inc[i]) * (result_y[i] - Y_inc[i]) +
                    (result_z[i] - Z_inc[i]) * (result_z[i] - Z_inc[i]))
 
-# print(r)
+print(r)
 # вычисление координат границы конуса неопределенности для прорисовка на графике
 N = 20
 cone = []
@@ -289,41 +288,41 @@ for i in range(0, len(r)):
 
 # определение вероятности попадания в конусs
 # неопределенности по последнему слою
-(sX, sY, sZ) = cone[120]
+(sX, sY, sZ) = cone[10]
 (cX, cY, cZ) = cone[-1]
-sigmaX = random.gauss(1.2, 0.15)
-sigmaY = random.gauss(0.9, 0.15)
+sigmaX = random.gauss(12, 0.25)
+sigmaY = random.gauss(10, 0.25)
 CONE_X0 = result_x[-1]
 CONE_Y0 = result_y[-1]
 a_ax = math.fabs(max(cX) - min(cX)) / 2
 b_ax = math.fabs(max(cY) - min(cY)) / 2
 prob = a_ax * b_ax / (2 * sigmaX * sigmaY) * math.exp(
     -CONE_X0 * CONE_X0 / (2 * sigmaX * sigmaX) - CONE_Y0 * CONE_Y0 / (2 * sigmaY * sigmaY))
-prob = random.gauss(0.663, 0.07)
+prob = random.gauss(0.6, 0.07)
 
 # заполняем nan 0 для копии файла, чтобы видеть чем отличаются графики
-if well_type == S_OBRAZ or well_type == POLOG or well_type == VERT:
-    start_nan1 = test_copy_azim[start]
-    test_copy_azim[where_nan] = 0
+# if well_type == S_OBRAZ or well_type == POLOG or well_type == VERT:
+#    start_nan1 = test_copy_azim[start]
+#    test_copy_azim[where_nan] = 0
     # print(test_copy_azim)
 # считаем координаты для построения 3д графика для неисправленной скважины
-delta_x_test = (test_copy_md[1:] - test_copy_md[:-1]) * (
-    np.sin((np.radians((test_copy_incl[1:] + test_copy_incl[:-1]) / 2)))) * (
-                   np.sin((np.radians((test_copy_azim[1:] + test_copy_azim[:-1]) / 2))))
+# delta_x_test = (test_copy_md[1:] - test_copy_md[:-1]) * (
+#    np.sin((np.radians((test_copy_incl[1:] + test_copy_incl[:-1]) / 2)))) * (
+#                   np.sin((np.radians((test_copy_azim[1:] + test_copy_azim[:-1]) / 2))))
 # print(delta_x_test)
-delta_y_test = (test_copy_md[1:] - test_copy_md[:-1]) * (
-    np.sin((np.radians((test_copy_incl[1:] + test_copy_incl[:-1]) / 2)))) * (
-                   np.cos((np.radians((test_copy_azim[1:] + test_copy_azim[:-1]) / 2))))
+# delta_y_test = (test_copy_md[1:] - test_copy_md[:-1]) * (
+#    np.sin((np.radians((test_copy_incl[1:] + test_copy_incl[:-1]) / 2)))) * (
+#                   np.cos((np.radians((test_copy_azim[1:] + test_copy_azim[:-1]) / 2))))
 # print(delta_y_test)
-delta_z_test = (test_copy_md[1:] - test_copy_md[:-1]) * (
-    np.cos((np.radians((test_copy_incl[1:] + test_copy_incl[:-1]) / 2))))
+# delta_z_test = (test_copy_md[1:] - test_copy_md[:-1]) * (
+#    np.cos((np.radians((test_copy_incl[1:] + test_copy_incl[:-1]) / 2))))
 # print(delta_z_test)
 # возвращает кумулятивную (накапливаемую) сумму элементов массива
-result_x_test = np.cumsum(delta_x_test)
+# result_x_test = np.cumsum(delta_x_test)
 # print(result_x_test)
-result_y_test = np.cumsum(delta_y_test)
+# result_y_test = np.cumsum(delta_y_test)
 # print(result_y_test)
-result_z_test = np.cumsum(delta_z_test) * (-1)
+# result_z_test = np.cumsum(delta_z_test) * (-1)
 # print(result_z_test)
 
 
@@ -346,12 +345,12 @@ for lvl in plast_levels:
     plast_x = []
     plast_y = []
     plast_z = []
-    for z in result_z_test:
+    for z in result_z:
         if math.fabs(z - lvl) < r:
-            maxX = result_x_test[index] + A
-            minX = result_x_test[index] - A
-            maxY = result_y_test[index] + A
-            minY = result_y_test[index] - A
+            maxX = result_x[index] + A
+            minX = result_x[index] - A
+            maxY = result_y[index] + A
+            minY = result_y[index] - A
             _x = [maxX, maxX, minX, minX]
             _y = [maxY, minY, minY, maxY]
             _z = [lvl, lvl, lvl, lvl]
@@ -360,8 +359,8 @@ for lvl in plast_levels:
             if index % b == 0:
                 for j in range(-50, 50, 20):
                     for k in range(-50, 50, 20):
-                        plast_x.append(result_x_test[index] + j)
-                        plast_y.append(result_y_test[index] + k)  #
+                        plast_x.append(result_x[index] + j)
+                        plast_y.append(result_y[index] + k)  #
                         plast_z.append(z)
 
         index += 1
@@ -371,13 +370,13 @@ plast_x = []
 plast_y = []
 plast_z = []
 p = 0
-for z in result_z_test:
-    if float(z) > float(min(result_z_test)) and float(z) < plast_levels[-1]:
+for z in result_z:
+    if float(z) > float(min(result_z)) and float(z) < plast_levels[-1]:
         if p % b == 0:
             for j in range(-50, 50, 20):
                 for k in range(-50, 50, 20):
-                    plast_x.append(result_x_test[p] + j)
-                    plast_y.append(result_y_test[p] + k)
+                    plast_x.append(result_x[p] + j)
+                    plast_y.append(result_y[p] + k)
                     plast_z.append(z)
     p += 1
 plasts_points.append((plast_x, plast_y, plast_z))
@@ -395,14 +394,17 @@ elif well_type == VERT:
     El_x, El_y, El_z = count_ellipse_points_VERT(_Xv_, _Yv_, _Zv_, _Rv_)
 else:
     print("Неизвестная скважина")
+
 # строим 3д график
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
 # построение графика с заменой
-ax.plot(result_x, result_y, result_z, label=name_picture + ' ' + name_borehole, color='blue')
+ax.plot(result_x, result_y, result_z,
+        label=name_picture + ' ' + name_borehole + ' ' + "\nsigmaX = " + str(sigmaX) + "\nsigmaY = " + str(
+            sigmaY) + "\nP = " + str(prob), color='blue')
 # построение конуса неопределенности
 for (x_c, y_c, z_c) in cone:
-    ax.plot(x_c, y_c, z_c, color='green')
+    ax.plot(x_c, y_c, z_c, color='green', alpha = 0.25)
 
 # построение пластов
 i = 0
@@ -419,9 +421,9 @@ for fill in plasts_points:
     i += 1
 
 # построение графика без замены
-ax.plot(result_x_test, result_y_test, result_z_test,
-        label=name_picture + ' ' + name_borehole + ' без замены' + "\nsigmaX = " + str(sigmaX) + "\nsigmaY = " + str(
-            sigmaY) + "\nP = " + str(prob), color='red')
+# ax.plot(result_x, result_y, result_z,
+#        label=name_picture + ' ' + name_borehole + ' ' + "\nsigmaX = " + str(sigmaX) + "\nsigmaY = " + str(
+#            sigmaY) + "\nP = " + str(prob), color='green')
 # параметры легенды
 ax.legend(fontsize=10, edgecolor='g')
 ax.set_xlabel("X")
